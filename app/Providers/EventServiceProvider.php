@@ -54,6 +54,26 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\ClearSalesCache::class,
             \App\Listeners\ClearStockCache::class,
         ],
+
+        // Promotions Module Events
+        \App\Events\PromotionCreated::class => [
+            \App\Listeners\ClearPromotionCache::class,
+            \App\Listeners\RebuildPromotionCache::class,
+        ],
+        \App\Events\PromotionUpdated::class => [
+            \App\Listeners\ClearPromotionCache::class,
+            \App\Listeners\RebuildPromotionCache::class,
+        ],
+        \App\Events\PromotionDeleted::class => [
+            \App\Listeners\ClearPromotionCache::class,
+        ],
+        \App\Events\CouponUsed::class => [
+            \App\Listeners\UpdatePromotionUsageCount::class,
+            \App\Listeners\ClearPromotionCache::class,
+        ],
+        \App\Events\PromotionApplied::class => [
+            \App\Listeners\UpdatePromotionUsageCount::class,
+        ],
     ];
 
     public function boot(): void

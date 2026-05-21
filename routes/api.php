@@ -26,6 +26,20 @@ use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\SalesReportController;
 use App\Http\Controllers\Api\SupplierLedgerController;
+use App\Http\Controllers\Api\PromotionController;
+use App\Http\Controllers\Api\PromotionCouponController;
+use App\Http\Controllers\Api\PromotionUsageController;
+use App\Http\Controllers\Api\PosPromotionController;
+use App\Http\Controllers\Api\StaffUserController;
+use App\Http\Controllers\Api\HrDepartmentController;
+use App\Http\Controllers\Api\HrShiftController;
+use App\Http\Controllers\Api\UserAttendanceController;
+use App\Http\Controllers\Api\UserLeaveController;
+use App\Http\Controllers\Api\SalaryComponentController;
+use App\Http\Controllers\Api\PayrollController;
+use App\Http\Controllers\Api\SalaryPaymentController;
+use App\Http\Controllers\Api\UserAdvanceController;
+use App\Http\Controllers\Api\UserActivityLogController;
 use App\Http\Middleware\CheckApi;
 use App\Http\Middleware\WebmasterAuth;
 use Illuminate\Support\Facades\Route;
@@ -174,6 +188,122 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('expenses/create', [ExpenseController::class, 'create']);
         Route::post('expenses/update', [ExpenseController::class, 'update']);
         Route::post('expenses/delete', [ExpenseController::class, 'delete']);
+
+        // Promotions
+        Route::post('promotions/create', [PromotionController::class, 'create']);
+        Route::post('promotions/update', [PromotionController::class, 'update']);
+        Route::post('promotions/delete', [PromotionController::class, 'delete']);
+        Route::post('promotions/search', [PromotionController::class, 'search']);
+        Route::get('promotions/details/{id}', [PromotionController::class, 'details']);
+        Route::post('promotions/change-status', [PromotionController::class, 'changeStatus']);
+        Route::get('promotions/active', [PromotionController::class, 'active']);
+        // Promotion targets
+        Route::post('promotions/add-target', [PromotionController::class, 'addTarget']);
+        Route::post('promotions/remove-target', [PromotionController::class, 'removeTarget']);
+        // Buy-Get rules
+        Route::post('promotions/add-rule', [PromotionController::class, 'addBuyGetRule']);
+        Route::post('promotions/update-rule', [PromotionController::class, 'updateBuyGetRule']);
+        Route::post('promotions/remove-rule', [PromotionController::class, 'removeBuyGetRule']);
+        // Free items
+        Route::post('promotions/add-free-item', [PromotionController::class, 'addFreeItem']);
+        Route::post('promotions/remove-free-item', [PromotionController::class, 'removeFreeItem']);
+        // Combo items
+        Route::post('promotions/add-combo-item', [PromotionController::class, 'addComboItem']);
+        Route::post('promotions/remove-combo-item', [PromotionController::class, 'removeComboItem']);
+
+        // Coupons
+        Route::post('coupons/create', [PromotionCouponController::class, 'create']);
+        Route::post('coupons/bulk-create', [PromotionCouponController::class, 'bulkCreate']);
+        Route::post('coupons/update', [PromotionCouponController::class, 'update']);
+        Route::post('coupons/delete', [PromotionCouponController::class, 'delete']);
+        Route::post('coupons/search', [PromotionCouponController::class, 'search']);
+        Route::get('coupons/details/{id}', [PromotionCouponController::class, 'details']);
+        Route::post('coupons/validate', [PromotionCouponController::class, 'validate']);
+
+        // POS Promotions
+        Route::post('pos/promotions/calculate', [PosPromotionController::class, 'calculate']);
+        Route::post('pos/promotions/apply-coupon', [PosPromotionController::class, 'applyCoupon']);
+        Route::post('pos/promotions/remove-coupon', [PosPromotionController::class, 'removeCoupon']);
+        Route::post('pos/promotions/free-item-options', [PosPromotionController::class, 'freeItemOptions']);
+        Route::post('pos/promotions/select-free-item', [PosPromotionController::class, 'selectFreeItem']);
+
+        // Promotion Usage History
+        Route::post('promotion-usages/search', [PromotionUsageController::class, 'search']);
+        Route::post('promotion-usages/summary', [PromotionUsageController::class, 'summary']);
+
+        // HR - Dashboard
+        Route::get('hr/dashboard-stats', [StaffUserController::class, 'dashboardStats']);
+
+        // HR - Staff Users
+        Route::post('hr/staff/search', [StaffUserController::class, 'search']);
+        Route::get('hr/staff/details/{id}', [StaffUserController::class, 'details']);
+        Route::post('hr/staff/create', [StaffUserController::class, 'create']);
+        Route::post('hr/staff/update', [StaffUserController::class, 'update']);
+        Route::post('hr/staff/delete', [StaffUserController::class, 'delete']);
+        Route::post('hr/staff/change-status', [StaffUserController::class, 'changeStatus']);
+
+        // HR - Departments & Designations
+        Route::post('hr/departments/search', [HrDepartmentController::class, 'searchDepartments']);
+        Route::post('hr/departments/create', [HrDepartmentController::class, 'createDepartment']);
+        Route::post('hr/departments/update', [HrDepartmentController::class, 'updateDepartment']);
+        Route::post('hr/departments/delete', [HrDepartmentController::class, 'deleteDepartment']);
+        Route::post('hr/designations/search', [HrDepartmentController::class, 'searchDesignations']);
+        Route::post('hr/designations/create', [HrDepartmentController::class, 'createDesignation']);
+        Route::post('hr/designations/update', [HrDepartmentController::class, 'updateDesignation']);
+        Route::post('hr/designations/delete', [HrDepartmentController::class, 'deleteDesignation']);
+
+        // HR - Shifts
+        Route::post('hr/shifts/search', [HrShiftController::class, 'search']);
+        Route::post('hr/shifts/create', [HrShiftController::class, 'create']);
+        Route::post('hr/shifts/update', [HrShiftController::class, 'update']);
+        Route::post('hr/shifts/delete', [HrShiftController::class, 'delete']);
+        Route::post('hr/shifts/assign', [HrShiftController::class, 'assignShift']);
+        Route::post('hr/shifts/user-shifts', [HrShiftController::class, 'getUserShifts']);
+
+        // HR - Attendance
+        Route::post('hr/attendance/search', [UserAttendanceController::class, 'search']);
+        Route::post('hr/attendance/mark', [UserAttendanceController::class, 'mark']);
+        Route::post('hr/attendance/bulk-mark', [UserAttendanceController::class, 'bulkMark']);
+        Route::post('hr/attendance/monthly-summary', [UserAttendanceController::class, 'monthlySummary']);
+        Route::post('hr/attendance/delete', [UserAttendanceController::class, 'delete']);
+
+        // HR - Leaves
+        Route::post('hr/leave-types/search', [UserLeaveController::class, 'searchLeaveTypes']);
+        Route::post('hr/leave-types/create', [UserLeaveController::class, 'createLeaveType']);
+        Route::post('hr/leave-types/update', [UserLeaveController::class, 'updateLeaveType']);
+        Route::post('hr/leave-types/delete', [UserLeaveController::class, 'deleteLeaveType']);
+        Route::post('hr/leaves/search', [UserLeaveController::class, 'searchLeaves']);
+        Route::post('hr/leaves/apply', [UserLeaveController::class, 'applyLeave']);
+        Route::post('hr/leaves/update-status', [UserLeaveController::class, 'updateLeaveStatus']);
+        Route::post('hr/leaves/delete', [UserLeaveController::class, 'deleteLeave']);
+
+        // HR - Salary Components & Structures
+        Route::post('hr/salary-components/search', [SalaryComponentController::class, 'search']);
+        Route::post('hr/salary-components/create', [SalaryComponentController::class, 'create']);
+        Route::post('hr/salary-components/update', [SalaryComponentController::class, 'update']);
+        Route::post('hr/salary-components/delete', [SalaryComponentController::class, 'delete']);
+        Route::get('hr/salary-structure/{userId}', [SalaryComponentController::class, 'getUserSalary']);
+        Route::post('hr/salary-structure/save', [SalaryComponentController::class, 'saveUserSalary']);
+
+        // HR - Payroll
+        Route::post('hr/payroll/search', [PayrollController::class, 'search']);
+        Route::post('hr/payroll/generate', [PayrollController::class, 'generate']);
+        Route::get('hr/payroll/details/{id}', [PayrollController::class, 'details']);
+        Route::post('hr/payroll/change-status', [PayrollController::class, 'changeStatus']);
+
+        // HR - Salary Payments
+        Route::post('hr/salary-payments/search', [SalaryPaymentController::class, 'search']);
+        Route::post('hr/salary-payments/record', [SalaryPaymentController::class, 'record']);
+        Route::post('hr/salary-payments/delete', [SalaryPaymentController::class, 'delete']);
+
+        // HR - Advances
+        Route::post('hr/advances/search', [UserAdvanceController::class, 'search']);
+        Route::post('hr/advances/create', [UserAdvanceController::class, 'create']);
+        Route::post('hr/advances/update-status', [UserAdvanceController::class, 'updateStatus']);
+        Route::post('hr/advances/delete', [UserAdvanceController::class, 'delete']);
+
+        // HR - Activity Logs
+        Route::post('hr/activity-logs/search', [UserActivityLogController::class, 'search']);
 
         // Reports
         Route::post('reports/sales', [SalesReportController::class, 'sales']);
