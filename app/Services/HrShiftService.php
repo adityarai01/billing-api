@@ -19,7 +19,32 @@ class HrShiftService
         }
 
         $records = $query->orderBy('name')->get();
-        return ['record' => $records, 'total_data' => $records->count()];
+        $staffCounts = UserShift::where('organization_id', $orgId)
+            ->where('deleted', 0)
+            ->where(function ($builder) {
+                $builder->whereNull('effective_to')
+                    ->orWhere('effective_to', '>=', now()->toDateString());
+            })
+            ->selectRaw('shift_id, COUNT(*) as total')
+            ->groupBy('shift_id')
+            ->pluck('total', 'shift_id');
+
+        return [
+            'record' => $records->map(function (HrShift $shift) use ($staffCounts) {
+                return [
+                    'id' => $shift->id,
+                    'name' => $shift->name,
+                    'start_time' => $shift->start_time,
+                    'end_time' => $shift->end_time,
+                    'grace_minutes' => (int) $shift->grace_minutes,
+                    'working_hours' => (float) $shift->working_hours,
+                    'working_days' => $shift->working_days,
+                    'status' => (int) $shift->status,
+                    'staff_count' => (int) ($staffCounts[$shift->id] ?? 0),
+                ];
+            })->values(),
+            'total_data' => $records->count(),
+        ];
     }
 
     public function createShift(int $orgId, array $data, int $createdBy): HrShift

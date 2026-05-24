@@ -21,7 +21,7 @@ class SalaryPaymentController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Payments fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function record(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class SalaryPaymentController extends Controller
         try {
             $payment = $this->service->recordPayment($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($payment, 'Payment recorded.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function delete(Request $request): JsonResponse
@@ -37,6 +37,6 @@ class SalaryPaymentController extends Controller
         try {
             $this->service->delete($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Payment deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

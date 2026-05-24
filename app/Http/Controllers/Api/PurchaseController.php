@@ -42,4 +42,48 @@ class PurchaseController extends Controller
         $purchase = $this->service->cancelPurchase($this->orgId($request), (int)$request->input('id'));
         return $this->successResponse($purchase, 'Purchase cancelled');
     }
+
+    /** Create a purchase request (workflow_stage = 1) */
+    public function createRequest(Request $request): JsonResponse
+    {
+        try {
+            $purchase = $this->service->createWorkflow($this->orgId($request), $request->all(), 1, $request->attributes->get('user_id'));
+            return $this->successResponse($purchase, 'Purchase request created', 201);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /** Approve PR → PO (workflow_stage = 2) */
+    public function approvePR(Request $request): JsonResponse
+    {
+        try {
+            $purchase = $this->service->approveWorkflow($this->orgId($request), (int)$request->input('id'), $request->attributes->get('user_id'));
+            return $this->successResponse($purchase, 'Purchase request approved');
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /** Receive goods → GRN (workflow_stage = 3, stock updated) */
+    public function receiveGoods(Request $request): JsonResponse
+    {
+        try {
+            $purchase = $this->service->receiveWorkflow($this->orgId($request), (int)$request->input('id'), $request->all(), $request->attributes->get('user_id'));
+            return $this->successResponse($purchase, 'Goods received, stock updated');
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /** Reject PR */
+    public function rejectPR(Request $request): JsonResponse
+    {
+        try {
+            $purchase = $this->service->rejectWorkflow($this->orgId($request), (int)$request->input('id'), $request->input('reason', ''));
+            return $this->successResponse($purchase, 'Purchase request rejected');
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
 }

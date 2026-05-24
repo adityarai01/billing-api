@@ -78,11 +78,16 @@ class StockAdjustmentService
                         ? ProductBatch::where('id', $item->batch_id)->increment('available_qty', $adjQty)
                         : ProductBatch::where('id', $item->batch_id)->decrement('available_qty', $adjQty);
                     $total = ProductBatch::where('product_variant_id', $item->product_variant_id)->where('deleted', 0)->sum('available_qty');
-                    ProductVariant::where('id', $item->product_variant_id)->update(['stock_qty' => $total]);
+                    ProductVariant::where('id', $item->product_variant_id)->update([
+                        'stock_qty'                => $total,
+                        'available_stock_base_qty' => $total,
+                    ]);
                 } else {
                     $isIncrease
                         ? ProductVariant::where('id', $item->product_variant_id)->increment('stock_qty', $adjQty)
                         : ProductVariant::where('id', $item->product_variant_id)->decrement('stock_qty', $adjQty);
+                    ProductVariant::where('id', $item->product_variant_id)
+                        ->update(['available_stock_base_qty' => DB::raw('stock_qty')]);
                 }
 
                 $this->ledgerService->createLedger([

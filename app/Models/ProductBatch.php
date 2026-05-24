@@ -12,6 +12,8 @@ class ProductBatch extends Model
         'product_id',
         'product_variant_id',
         'supplier_id',
+        'base_unit_id',
+        'base_unit_name',
         'batch_no',
         'mfg_date',
         'expiry_date',
@@ -19,21 +21,25 @@ class ProductBatch extends Model
         'mrp',
         'selling_price',
         'opening_qty',
+        'opening_qty_base',
         'available_qty',
+        'available_qty_base',
         'status',
         'deleted',
     ];
 
     protected $casts = [
-        'mfg_date'       => 'date',
-        'expiry_date'    => 'date',
-        'purchase_price' => 'decimal:4',
-        'mrp'            => 'decimal:4',
-        'selling_price'  => 'decimal:4',
-        'opening_qty'    => 'decimal:4',
-        'available_qty'  => 'decimal:4',
-        'status'         => 'integer',
-        'deleted'        => 'integer',
+        'mfg_date'          => 'date',
+        'expiry_date'       => 'date',
+        'purchase_price'    => 'decimal:4',
+        'mrp'               => 'decimal:4',
+        'selling_price'     => 'decimal:4',
+        'opening_qty'       => 'decimal:4',
+        'opening_qty_base'  => 'decimal:3',
+        'available_qty'     => 'decimal:4',
+        'available_qty_base'=> 'decimal:3',
+        'status'            => 'integer',
+        'deleted'           => 'integer',
     ];
 
     public function product(): BelongsTo

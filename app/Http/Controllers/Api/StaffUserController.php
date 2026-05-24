@@ -29,7 +29,7 @@ class StaffUserController extends Controller
         try {
             $result = $this->service->search($this->orgId($request), $request->all());
             return $this->successResponse($result, 'Staff fetched.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -40,7 +40,7 @@ class StaffUserController extends Controller
             $user = $this->service->details($this->orgId($request), $id);
             if (!$user) return $this->notFoundResponse('Staff not found.');
             return $this->successResponse($user, 'Staff details fetched.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -50,7 +50,7 @@ class StaffUserController extends Controller
         try {
             $user = $this->service->create($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($user, 'Staff created successfully.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -60,7 +60,7 @@ class StaffUserController extends Controller
         try {
             $user = $this->service->update($this->orgId($request), $request->input('id'), $request->all(), $this->userId($request));
             return $this->successResponse($user, 'Staff updated successfully.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -70,7 +70,7 @@ class StaffUserController extends Controller
         try {
             $this->service->delete($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Staff deleted.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -80,7 +80,7 @@ class StaffUserController extends Controller
         try {
             $this->service->changeStatus($this->orgId($request), $request->input('id'), $request->input('status'));
             return $this->successResponse(null, 'Status updated.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
@@ -90,7 +90,7 @@ class StaffUserController extends Controller
         try {
             $result = $this->service->dashboardStats($this->orgId($request));
             return $this->successResponse($result, 'Dashboard stats fetched.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage());
         }
     }

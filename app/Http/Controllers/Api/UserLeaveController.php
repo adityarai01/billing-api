@@ -21,7 +21,7 @@ class UserLeaveController extends Controller
     {
         try {
             return $this->successResponse($this->service->searchLeaveTypes($this->orgId($request), $request->all()), 'Leave types fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function createLeaveType(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class UserLeaveController extends Controller
         try {
             $lt = $this->service->createLeaveType($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($lt, 'Leave type created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function updateLeaveType(Request $request): JsonResponse
@@ -37,7 +37,7 @@ class UserLeaveController extends Controller
         try {
             $lt = $this->service->updateLeaveType($this->orgId($request), $request->input('id'), $request->all());
             return $this->successResponse($lt, 'Leave type updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function deleteLeaveType(Request $request): JsonResponse
@@ -45,14 +45,14 @@ class UserLeaveController extends Controller
         try {
             $this->service->deleteLeaveType($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Leave type deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function searchLeaves(Request $request): JsonResponse
     {
         try {
             return $this->successResponse($this->service->searchLeaves($this->orgId($request), $request->all()), 'Leaves fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function applyLeave(Request $request): JsonResponse
@@ -60,7 +60,7 @@ class UserLeaveController extends Controller
         try {
             $leave = $this->service->applyLeave($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($leave, 'Leave applied.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function updateLeaveStatus(Request $request): JsonResponse
@@ -74,7 +74,7 @@ class UserLeaveController extends Controller
                 $this->userId($request)
             );
             return $this->successResponse($leave, 'Leave status updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function deleteLeave(Request $request): JsonResponse
@@ -82,6 +82,6 @@ class UserLeaveController extends Controller
         try {
             $this->service->deleteLeave($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Leave deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

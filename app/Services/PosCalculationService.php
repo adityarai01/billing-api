@@ -28,15 +28,23 @@ class PosCalculationService
 
         $totalDiscountAmount = $itemDiscountTotal + $invoiceDiscountAmount + $couponDiscountAmount;
 
-        $totalCgst = array_sum(array_column($items, 'cgst_amount'));
-        $totalSgst = array_sum(array_column($items, 'sgst_amount'));
-        $totalIgst = array_sum(array_column($items, 'igst_amount'));
-        $totalGst  = array_sum(array_column($items, 'gst_amount'));
+        // Prices are GST-inclusive — apply invoice/coupon discount ratio to item-level GST amounts
+        $afterItemDisc = $subtotal - $itemDiscountTotal;
+        $ratio = $afterItemDisc > 0 ? ($afterItemDisc - $invoiceDiscountAmount - $couponDiscountAmount) / $afterItemDisc : 1;
 
-        $taxableAmount = $subtotal - $totalDiscountAmount;
+        $totalCgst = round(array_sum(array_column($items, 'cgst_amount')) * $ratio, 2);
+        $totalSgst = round(array_sum(array_column($items, 'sgst_amount')) * $ratio, 2);
+        $totalIgst = 0;
+        $totalGst  = $totalCgst + $totalSgst;
+
+        // taxable_amount = GST-exclusive cart total (sum of item taxable_amounts * ratio)
+        $taxableAmount = round(array_sum(array_column($items, 'taxable_amount')) * $ratio, 2);
+
+        // grand_total = inclusive net after all discounts (prices already include GST — no extra addition)
+        $inclusiveNet  = $subtotal - $totalDiscountAmount;
         $otherCharges  = (float) ($data['other_charges'] ?? 0);
         $roundOff      = (float) ($data['round_off'] ?? 0);
-        $grandTotal    = round($taxableAmount + $totalGst + $otherCharges + $roundOff, 2);
+        $grandTotal    = round($inclusiveNet + $otherCharges + $roundOff, 2);
 
         return [
             'items'                      => $items,
@@ -48,11 +56,11 @@ class PosCalculationService
             'coupon_discount_amount'     => round($couponDiscountAmount, 2),
             'promotion_discount_amount'  => 0,
             'total_discount_amount'      => round($totalDiscountAmount, 2),
-            'taxable_amount'             => round($taxableAmount, 2),
-            'cgst_amount'                => round($totalCgst, 2),
-            'sgst_amount'                => round($totalSgst, 2),
-            'igst_amount'                => round($totalIgst, 2),
-            'gst_amount'                 => round($totalGst, 2),
+            'taxable_amount'             => $taxableAmount,
+            'cgst_amount'                => $totalCgst,
+            'sgst_amount'                => $totalSgst,
+            'igst_amount'                => $totalIgst,
+            'gst_amount'                 => $totalGst,
             'other_charges'              => $otherCharges,
             'round_off'                  => $roundOff,
             'grand_total'                => $grandTotal,
@@ -73,17 +81,21 @@ class PosCalculationService
         $discountAmount = $this->calculateItemDiscount($item, $grossAmount);
         $totalDiscount  = $discountAmount;
 
-        $taxableAmount = $grossAmount - $totalDiscount;
+        $inclusiveAmount = $grossAmount - $totalDiscount; // unit_price is GST-inclusive
 
         $gstPct  = (float) ($item['gst_percent'] ?? 0);
         $cgstPct = round($gstPct / 2, 2);
         $sgstPct = round($gstPct / 2, 2);
         $igstPct = 0;
-        $cgstAmt = round($taxableAmount * $cgstPct / 100, 2);
-        $sgstAmt = round($taxableAmount * $sgstPct / 100, 2);
+        $divisor = 100 + $gstPct;
+        // Extract GST from inclusive amount (do not add on top)
+        $cgstAmt = $divisor > 0 ? round($inclusiveAmount * $cgstPct / $divisor, 2) : 0;
+        $sgstAmt = $divisor > 0 ? round($inclusiveAmount * $sgstPct / $divisor, 2) : 0;
         $igstAmt = 0;
         $gstAmt  = $cgstAmt + $sgstAmt;
-        $totalAmt = round($taxableAmount + $gstAmt, 2);
+        // taxable_amount = GST-exclusive base (for GST invoice display)
+        $taxableAmount = round($inclusiveAmount - $gstAmt, 2);
+        $totalAmt = $inclusiveAmount; // total = inclusive amount (no extra addition)
 
         $purchasePrice = (float) ($item['purchase_price'] ?? 0);
         $profitAmount  = round($taxableAmount - ($purchasePrice * $qty), 2);
@@ -132,13 +144,18 @@ class PosCalculationService
     {
         $errors = [];
         foreach ($items as $item) {
-            $variantId = $item['product_variant_id'];
-            $batchId   = $item['batch_id'] ?? null;
-            $qty       = (float) ($item['qty'] ?? 0);
+            $variantId     = $item['product_variant_id'];
+            $batchId       = $item['batch_id'] ?? null;
+            $qty           = (float) ($item['qty'] ?? 0);
+            $conversionQty = (float) ($item['conversion_qty'] ?? 1);
+            // base_qty is what will be deducted from stock
+            $baseQty = isset($item['base_qty']) && (float) $item['base_qty'] > 0
+                ? (float) $item['base_qty']
+                : round($qty * $conversionQty, 3);
 
             if ($batchId) {
                 $batch = ProductBatch::find($batchId);
-                if (!$batch || $batch->available_qty < $qty) {
+                if (!$batch || (float) $batch->available_qty < $baseQty) {
                     $errors[] = "Insufficient stock for batch: {$item['batch_no']}";
                 }
                 if ($batch && $batch->expiry_date && $batch->expiry_date < now()->toDateString()) {
@@ -146,7 +163,10 @@ class PosCalculationService
                 }
             } else {
                 $variant = ProductVariant::find($variantId);
-                if (!$variant || $variant->stock_qty < $qty) {
+                $availableBase = $variant
+                    ? max((float) $variant->available_stock_base_qty, (float) $variant->stock_qty)
+                    : 0.0;
+                if (!$variant || $availableBase < $baseQty) {
                     $errors[] = "Insufficient stock for: {$item['product_name']} - {$item['variant_name']}";
                 }
             }

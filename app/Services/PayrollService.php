@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AttendanceStatusEnum;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\User;
@@ -68,11 +69,15 @@ class PayrollService
                     ->where('deleted', 0)
                     ->get();
 
-                $presentDays    = $attendance->where('status', 1)->count();
-                $halfDays       = $attendance->where('status', 3)->count();
-                $paidLeaveDays  = $attendance->where('status', 5)->count();
-                $absentDays     = $daysInMonth - $presentDays - $halfDays - $paidLeaveDays - $attendance->whereIn('status', [6, 7])->count();
-                $workingDays    = $daysInMonth - $attendance->whereIn('status', [6, 7])->count();
+                $presentDays    = $this->countAttendanceStatus($attendance, AttendanceStatusEnum::Present);
+                $halfDays       = $this->countAttendanceStatus($attendance, AttendanceStatusEnum::HalfDay);
+                $paidLeaveDays  = $this->countAttendanceStatus($attendance, AttendanceStatusEnum::OnLeave);
+                $nonWorkingDays = $this->countAttendanceStatuses($attendance, [
+                    AttendanceStatusEnum::Holiday,
+                    AttendanceStatusEnum::WeeklyOff,
+                ]);
+                $absentDays     = $daysInMonth - $presentDays - $halfDays - $paidLeaveDays - $nonWorkingDays;
+                $workingDays    = $daysInMonth - $nonWorkingDays;
                 $effectiveDays  = $presentDays + ($halfDays * 0.5) + $paidLeaveDays;
                 $overtimeHours  = $attendance->sum('overtime_hours');
 
@@ -164,5 +169,21 @@ class PayrollService
             'updated_by'  => $updatedBy,
         ]);
         return $payroll->fresh();
+    }
+
+    private function countAttendanceStatus($records, AttendanceStatusEnum $status): int
+    {
+        return $records->filter(
+            fn (UserAttendance $record) => (int) $record->getRawOriginal('status') === $status->value
+        )->count();
+    }
+
+    private function countAttendanceStatuses($records, array $statuses): int
+    {
+        $allowed = array_map(fn (AttendanceStatusEnum $status) => $status->value, $statuses);
+
+        return $records->filter(
+            fn (UserAttendance $record) => in_array((int) $record->getRawOriginal('status'), $allowed, true)
+        )->count();
     }
 }

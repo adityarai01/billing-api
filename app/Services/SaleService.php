@@ -22,6 +22,7 @@ class SaleService
         private SaleDiscountService   $discountService,
         private SaleStockService      $stockService,
         private CustomerLedgerService $ledgerService,
+        private CashRegisterService   $cashRegisterService,
     ) {}
 
     public function generateInvoiceNo(int $organizationId): string
@@ -145,6 +146,9 @@ class SaleService
             $payments = $data['payments'] ?? [];
             if (!empty($payments)) {
                 $this->paymentService->createPaymentsForSale($organizationId, $sale->id, $payments, $data['customer_id'] ?? null, $userId);
+                if ($userId) {
+                    $this->cashRegisterService->recordSaleTransaction($organizationId, $userId, $sale->id, $payments);
+                }
             }
 
             $this->stockService->deductStockForSale($sale->id);
@@ -260,7 +264,10 @@ class SaleService
                             'stock_qty' => ProductBatch::where('product_variant_id', $saleItem->product_variant_id)->sum('available_qty'),
                         ]);
                 } else {
-                    ProductVariant::where('id', $saleItem->product_variant_id)->increment('stock_qty', $returnQty);
+                    ProductVariant::where('id', $saleItem->product_variant_id)->update([
+                        'stock_qty'                => DB::raw("stock_qty + {$returnQty}"),
+                        'available_stock_base_qty' => DB::raw("stock_qty + {$returnQty}"),
+                    ]);
                 }
 
                 $this->stockService->createSaleStockLedger([

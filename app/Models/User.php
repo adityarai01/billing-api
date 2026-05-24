@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Role;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -96,6 +97,26 @@ class User extends Authenticatable
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /** Return flat "module.action" permission keys via role */
+    public function getPermissionKeys(): array
+    {
+        if (!$this->role_id) return [];
+        $role = Role::with('permissions')->find($this->role_id);
+        return $role ? $role->permissionKeys() : [];
+    }
+
+    public function can($ability, $arguments = []): bool
+    {
+        if ($this->user_type?->value === 1 || $this->user_type?->value === 2) return true; // SuperAdmin/ShopOwner
+        $keys = $this->getPermissionKeys();
+        return in_array($ability, $keys, true);
     }
 
     public function attendance()

@@ -20,6 +20,6 @@ class UserActivityLogController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Logs fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

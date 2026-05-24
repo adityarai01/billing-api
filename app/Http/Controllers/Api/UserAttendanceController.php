@@ -21,7 +21,7 @@ class UserAttendanceController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Attendance fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function mark(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class UserAttendanceController extends Controller
         try {
             $record = $this->service->markAttendance($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($record, 'Attendance marked.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function bulkMark(Request $request): JsonResponse
@@ -37,20 +37,21 @@ class UserAttendanceController extends Controller
         try {
             $count = $this->service->bulkMark($this->orgId($request), $request->input('records', []), $this->userId($request));
             return $this->successResponse(['count' => $count], "{$count} attendance records saved.");
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function monthlySummary(Request $request): JsonResponse
     {
         try {
+            $userId = $request->input('user_id');
             $summary = $this->service->monthlySummary(
                 $this->orgId($request),
-                $request->input('user_id'),
-                $request->input('year', date('Y')),
-                $request->input('month', date('n'))
+                $userId !== null && $userId !== '' ? (int) $userId : null,
+                (int) $request->input('year', date('Y')),
+                (int) $request->input('month', date('n'))
             );
             return $this->successResponse($summary, 'Monthly summary fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function delete(Request $request): JsonResponse
@@ -58,6 +59,6 @@ class UserAttendanceController extends Controller
         try {
             $this->service->delete($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Attendance deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

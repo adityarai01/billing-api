@@ -17,8 +17,9 @@ class StockService
                 ->increment('available_qty', $data['qty']);
             $this->recalculateVariantStockFromBatches($data['product_variant_id']);
         } else {
+            ProductVariant::where('id', $data['product_variant_id'])->increment('stock_qty', $data['qty']);
             ProductVariant::where('id', $data['product_variant_id'])
-                ->increment('stock_qty', $data['qty']);
+                ->update(['available_stock_base_qty' => DB::raw('stock_qty')]);
         }
         $this->recalculateProductStock($data['product_id'] ?? $this->getProductIdFromVariant($data['product_variant_id']));
     }
@@ -30,8 +31,9 @@ class StockService
                 ->decrement('available_qty', $data['qty']);
             $this->recalculateVariantStockFromBatches($data['product_variant_id']);
         } else {
+            ProductVariant::where('id', $data['product_variant_id'])->decrement('stock_qty', $data['qty']);
             ProductVariant::where('id', $data['product_variant_id'])
-                ->decrement('stock_qty', $data['qty']);
+                ->update(['available_stock_base_qty' => DB::raw('stock_qty')]);
         }
         $this->recalculateProductStock($data['product_id'] ?? $this->getProductIdFromVariant($data['product_variant_id']));
     }
@@ -66,7 +68,7 @@ class StockService
     public function getCurrentStockReport(int $organizationId, array $filters = []): array
     {
         $cacheKey = "org:{$organizationId}:stock:current:" . md5(json_encode($filters));
-        return Cache::remember($cacheKey, 300, function () use ($organizationId, $filters) {
+        return Cache::remember($cacheKey, 30, function () use ($organizationId, $filters) {
             $query = DB::table('product_variants as pv')
                 ->join('products as p', 'p.id', '=', 'pv.product_id')
                 ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')

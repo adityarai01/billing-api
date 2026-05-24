@@ -45,10 +45,14 @@ class StaffUserService
         $records = $query->select([
             'id', 'name', 'email', 'mobile_no', 'user_type', 'employee_code',
             'designation', 'department', 'employment_type', 'joining_date',
-            'profile_image', 'gender', 'status', 'login_enabled', 'created_at',
-        ])->orderBy('name')->paginate($perPage);
+            'profile_image', 'gender', 'status', 'login_enabled', 'role_id', 'created_at',
+        ])->with('role:id,display_name')->orderBy('name')->paginate($perPage);
 
-        return ['record' => $records->items(), 'total_data' => $total];
+        $items = collect($records->items())->map(fn($u) => array_merge($u->toArray(), [
+            'role_name' => $u->role?->display_name ?? null,
+        ]))->all();
+
+        return ['record' => $items, 'total_data' => $total];
     }
 
     public function details(int $orgId, int $id): ?User

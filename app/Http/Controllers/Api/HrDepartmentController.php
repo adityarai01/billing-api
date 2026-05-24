@@ -22,7 +22,7 @@ class HrDepartmentController extends Controller
     {
         try {
             return $this->successResponse($this->service->searchDepartments($this->orgId($request), $request->all()), 'Departments fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function createDepartment(Request $request): JsonResponse
@@ -30,7 +30,7 @@ class HrDepartmentController extends Controller
         try {
             $dept = $this->service->createDepartment($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($dept, 'Department created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function updateDepartment(Request $request): JsonResponse
@@ -38,7 +38,7 @@ class HrDepartmentController extends Controller
         try {
             $dept = $this->service->updateDepartment($this->orgId($request), $request->input('id'), $request->all(), $this->userId($request));
             return $this->successResponse($dept, 'Department updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function deleteDepartment(Request $request): JsonResponse
@@ -46,7 +46,7 @@ class HrDepartmentController extends Controller
         try {
             $this->service->deleteDepartment($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Department deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     // Designations
@@ -54,7 +54,7 @@ class HrDepartmentController extends Controller
     {
         try {
             return $this->successResponse($this->service->searchDesignations($this->orgId($request), $request->all()), 'Designations fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function createDesignation(Request $request): JsonResponse
@@ -62,7 +62,7 @@ class HrDepartmentController extends Controller
         try {
             $desig = $this->service->createDesignation($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($desig, 'Designation created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function updateDesignation(Request $request): JsonResponse
@@ -70,7 +70,7 @@ class HrDepartmentController extends Controller
         try {
             $desig = $this->service->updateDesignation($this->orgId($request), $request->input('id'), $request->all(), $this->userId($request));
             return $this->successResponse($desig, 'Designation updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function deleteDesignation(Request $request): JsonResponse
@@ -78,6 +78,6 @@ class HrDepartmentController extends Controller
         try {
             $this->service->deleteDesignation($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Designation deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

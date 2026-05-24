@@ -31,6 +31,12 @@ class SalesReportController extends Controller
         return $this->successResponse($result, 'Payment mode report fetched');
     }
 
+    public function dailySummary(Request $request): JsonResponse
+    {
+        $result = $this->service->getDailySummary($this->orgId($request), $request->all());
+        return $this->successResponse($result, 'Daily summary fetched');
+    }
+
     public function customerDue(Request $request): JsonResponse
     {
         $result = $this->service->getCustomerDueReport($this->orgId($request), $request->all());

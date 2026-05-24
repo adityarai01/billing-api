@@ -21,7 +21,7 @@ class SalaryComponentController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Components fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function create(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class SalaryComponentController extends Controller
         try {
             $comp = $this->service->create($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($comp, 'Component created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function update(Request $request): JsonResponse
@@ -37,7 +37,7 @@ class SalaryComponentController extends Controller
         try {
             $comp = $this->service->update($this->orgId($request), $request->input('id'), $request->all());
             return $this->successResponse($comp, 'Component updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function delete(Request $request): JsonResponse
@@ -45,7 +45,7 @@ class SalaryComponentController extends Controller
         try {
             $this->service->delete($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Component deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function getUserSalary(Request $request, int $userId): JsonResponse
@@ -53,7 +53,7 @@ class SalaryComponentController extends Controller
         try {
             $structure = $this->service->getUserSalaryStructure($this->orgId($request), $userId);
             return $this->successResponse($structure, 'Salary structure fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function saveUserSalary(Request $request): JsonResponse
@@ -61,11 +61,11 @@ class SalaryComponentController extends Controller
         try {
             $structure = $this->service->saveUserSalaryStructure(
                 $this->orgId($request),
-                $request->input('user_id'),
+                (int) $request->input('user_id'),
                 $request->all(),
                 $this->userId($request)
             );
             return $this->successResponse($structure, 'Salary structure saved.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

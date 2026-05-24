@@ -21,7 +21,7 @@ class UserAdvanceController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Advances fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function create(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class UserAdvanceController extends Controller
         try {
             $advance = $this->service->create($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($advance, 'Advance request created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function updateStatus(Request $request): JsonResponse
@@ -43,7 +43,7 @@ class UserAdvanceController extends Controller
                 $this->userId($request)
             );
             return $this->successResponse($advance, 'Status updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function delete(Request $request): JsonResponse
@@ -51,6 +51,6 @@ class UserAdvanceController extends Controller
         try {
             $this->service->delete($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Advance deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

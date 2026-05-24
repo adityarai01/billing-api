@@ -35,6 +35,7 @@ class Sale extends Model
     ];
 
     public function customer() { return $this->belongsTo(Customer::class); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function organization() { return $this->belongsTo(Organization::class); }
     public function saleItems() { return $this->hasMany(SaleItem::class); }
     public function salePayments() { return $this->hasMany(SalePayment::class); }

@@ -21,7 +21,7 @@ class PayrollController extends Controller
     {
         try {
             return $this->successResponse($this->service->search($this->orgId($request), $request->all()), 'Payrolls fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function generate(Request $request): JsonResponse
@@ -34,7 +34,7 @@ class PayrollController extends Controller
                 $this->userId($request)
             );
             return $this->successResponse(['generated_ids' => $ids], count($ids) . ' payrolls generated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function details(Request $request, int $id): JsonResponse
@@ -43,7 +43,7 @@ class PayrollController extends Controller
             $payroll = $this->service->details($this->orgId($request), $id);
             if (!$payroll) return $this->notFoundResponse('Payroll not found.');
             return $this->successResponse($payroll, 'Payroll details fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function changeStatus(Request $request): JsonResponse
@@ -56,6 +56,6 @@ class PayrollController extends Controller
                 $this->userId($request)
             );
             return $this->successResponse($payroll, 'Status updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

@@ -8,6 +8,8 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -44,7 +46,7 @@ class LoginController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-        $user->load('organization');
+        $user->load(['organization', 'role:id,display_name']);
 
         return $this->successResponse([
             'token' => $token,
@@ -68,23 +70,32 @@ class LoginController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->attributes->get('user');
-        $user->load('organization');
+        $user->load(['organization', 'role:id,display_name']);
 
-        return $this->successResponse($this->formatUser($user), 'Authenticated User');
+        return $this->successResponse(
+            $this->formatUser($user, $request->attributes->get('permissions', [])),
+            'Authenticated User'
+        );
     }
 
-    private function formatUser($user): array
+    private function formatUser($user, array $permissions = []): array
     {
         $org = $user->organization;
 
         return [
-            'id'        => $user->getKey(),
-            'name'      => $user->getAttribute('name'),
-            'email'     => $user->getAttribute('email'),
-            'mobile_no' => $user->getAttribute('mobile_no'),
-            'user_type' => $user->getAttribute('user_type') instanceof \BackedEnum
-                               ? $user->getAttribute('user_type')->value
-                               : $user->getAttribute('user_type'),
+            'id'          => $user->getKey(),
+            'name'        => $user->getAttribute('name'),
+            'email'       => $user->getAttribute('email'),
+            'mobile_no'   => $user->getAttribute('mobile_no'),
+            'profile_image' => $this->normalizeMediaPath($user->getAttribute('profile_image')),
+            'user_type'   => $user->getAttribute('user_type') instanceof \BackedEnum
+                                 ? $user->getAttribute('user_type')->value
+                                 : $user->getAttribute('user_type'),
+            'role_id'     => $user->getAttribute('role_id'),
+            'role_name'   => $user->role?->display_name,
+            'last_login_at' => $user->getAttribute('last_login_at')?->toDateTimeString(),
+            'last_login_ip' => $user->getAttribute('last_login_ip'),
+            'permissions' => $permissions,
             'organization' => $org ? [
                 'id'                  => $org->getKey(),
                 'shop_name'           => $org->shop_name,
@@ -100,7 +111,7 @@ class LoginController extends Controller
                 'state'               => $org->state,
                 'pincode'             => $org->pincode,
                 'country'             => $org->country,
-                'logo'                => $org->logo,
+                'logo'                => $this->normalizeMediaPath($org->logo),
                 'currency'            => $org->currency,
                 'timezone'            => $org->timezone,
                 'invoice_prefix'      => $org->invoice_prefix,
@@ -109,5 +120,22 @@ class LoginController extends Controller
                 'trial_end_date'      => $org->trial_end_date?->toDateString(),
             ] : null,
         ];
+    }
+
+    private function normalizeMediaPath(?string $path): ?string
+    {
+        if (!filled($path)) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, ['/storage/', 'storage/'])) {
+            return url('/' . ltrim($path, '/'));
+        }
+
+        return Storage::disk('public')->url($path);
     }
 }

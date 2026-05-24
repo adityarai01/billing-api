@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\PromotionCouponController;
 use App\Http\Controllers\Api\PromotionUsageController;
 use App\Http\Controllers\Api\PosPromotionController;
+use App\Http\Controllers\Api\ProductVariantUnitController;
 use App\Http\Controllers\Api\StaffUserController;
 use App\Http\Controllers\Api\HrDepartmentController;
 use App\Http\Controllers\Api\HrShiftController;
@@ -40,6 +41,12 @@ use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\SalaryPaymentController;
 use App\Http\Controllers\Api\UserAdvanceController;
 use App\Http\Controllers\Api\UserActivityLogController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CashRegisterController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationSettingController;
+use App\Http\Middleware\AuthorizeApiPermission;
 use App\Http\Middleware\CheckApi;
 use App\Http\Middleware\WebmasterAuth;
 use Illuminate\Support\Facades\Route;
@@ -68,7 +75,7 @@ Route::prefix('user')->name('user.')->group(function () {
     Route::post('login', [\App\Http\Controllers\Api\LoginController::class, 'login'])->name('login');
 
     // Protected
-    Route::middleware(CheckApi::class)->group(function () {
+    Route::middleware([CheckApi::class, AuthorizeApiPermission::class])->group(function () {
         Route::post('logout', [\App\Http\Controllers\Api\LoginController::class, 'logout'])->name('logout');
         Route::post('me', [\App\Http\Controllers\Api\LoginController::class, 'me'])->name('me');
         Route::apiResource('categories', CategoryController::class)->except(['show']);
@@ -76,7 +83,19 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::apiResource('units', UnitController::class)->except(['show']);
         Route::get('products/meta', [ProductController::class, 'meta'])->name('products.meta');
         Route::post('products/upload-image', [ProductController::class, 'uploadImage'])->name('products.upload-image');
-        Route::apiResource('products', ProductController::class);
+        Route::apiResource('products', ProductController::class);   
+
+        // Product Variant Units
+        Route::post('product-variant-units/create', [ProductVariantUnitController::class, 'create']);
+        Route::post('product-variant-units/update', [ProductVariantUnitController::class, 'update']);
+        Route::post('product-variant-units/delete', [ProductVariantUnitController::class, 'delete']);
+        Route::get('product-variant-units/variant/{productVariantId}', [ProductVariantUnitController::class, 'listByVariant']);
+        Route::post('product-variant-units/set-base-unit', [ProductVariantUnitController::class, 'setBaseUnit']);
+        Route::post('product-variant-units/set-default-sale-unit', [ProductVariantUnitController::class, 'setDefaultSaleUnit']);
+        Route::post('product-variant-units/set-default-purchase-unit', [ProductVariantUnitController::class, 'setDefaultPurchaseUnit']);
+        Route::get('pos/product-variant/{productVariantId}/units', [ProductVariantUnitController::class, 'posVariantUnits']);
+        Route::get('pos/product-variant/{productVariantId}/unit/{unitId}/price', [ProductVariantUnitController::class, 'posUnitPrice']);
+        Route::get('pos/product-variant/{productVariantId}/unit/{unitId}/stock', [ProductVariantUnitController::class, 'posUnitStock']);
 
         // Suppliers
         Route::post('suppliers/create', [SupplierController::class, 'create']);
@@ -92,6 +111,11 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('purchases/search', [PurchaseController::class, 'search']);
         Route::get('purchases/details/{id}', [PurchaseController::class, 'details']);
         Route::post('purchases/cancel', [PurchaseController::class, 'cancel']);
+        // Purchase Workflow (PR → PO → GRN)
+        Route::post('purchases/request', [PurchaseController::class, 'createRequest']);
+        Route::post('purchases/approve', [PurchaseController::class, 'approvePR']);
+        Route::post('purchases/receive', [PurchaseController::class, 'receiveGoods']);
+        Route::post('purchases/reject', [PurchaseController::class, 'rejectPR']);
 
         // Purchase Payments
         Route::post('purchase-payments/create', [PurchasePaymentController::class, 'create']);
@@ -231,6 +255,9 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('promotion-usages/search', [PromotionUsageController::class, 'search']);
         Route::post('promotion-usages/summary', [PromotionUsageController::class, 'summary']);
 
+        // Dashboard
+        Route::get('dashboard/stats', [DashboardController::class, 'stats']);
+
         // HR - Dashboard
         Route::get('hr/dashboard-stats', [StaffUserController::class, 'dashboardStats']);
 
@@ -307,11 +334,42 @@ Route::prefix('user')->name('user.')->group(function () {
 
         // Reports
         Route::post('reports/sales', [SalesReportController::class, 'sales']);
+        Route::post('reports/daily-summary', [SalesReportController::class, 'dailySummary']);
         Route::post('reports/sales-item', [SalesReportController::class, 'salesItem']);
         Route::post('reports/payment-mode', [SalesReportController::class, 'paymentMode']);
         Route::post('reports/customer-due', [SalesReportController::class, 'customerDue']);
         Route::post('reports/profit', [SalesReportController::class, 'profit']);
         Route::post('reports/discount', [SalesReportController::class, 'discount']);
+
+        // Cash Register
+        Route::post('cash-register/open', [CashRegisterController::class, 'open']);
+        Route::post('cash-register/close', [CashRegisterController::class, 'close']);
+        Route::get('cash-register/current', [CashRegisterController::class, 'current']);
+        Route::post('cash-register/search', [CashRegisterController::class, 'search']);
+        Route::get('cash-register/details/{id}', [CashRegisterController::class, 'details']);
+        Route::post('cash-register/cash-in', [CashRegisterController::class, 'cashIn']);
+        Route::post('cash-register/cash-out', [CashRegisterController::class, 'cashOut']);
+
+        // Notifications
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::get('notifications/unread', [NotificationController::class, 'unread']);
+        Route::post('notifications/search', [NotificationController::class, 'search']);
+        Route::post('notifications/mark-read', [NotificationController::class, 'markRead']);
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
+        Route::post('notifications/delete', [NotificationController::class, 'delete']);
+
+        // Notification Settings
+        Route::get('notification-settings', [NotificationSettingController::class, 'index']);
+        Route::post('notification-settings/update', [NotificationSettingController::class, 'update']);
+
+        // Roles & Permissions
+        Route::post('roles/search', [RoleController::class, 'search']);
+        Route::post('roles/create', [RoleController::class, 'create']);
+        Route::post('roles/update', [RoleController::class, 'update']);
+        Route::post('roles/delete', [RoleController::class, 'delete']);
+        Route::get('roles/{roleId}/permissions', [RoleController::class, 'getPermissions']);
+        Route::post('roles/permissions/save', [RoleController::class, 'savePermissions']);
+        Route::get('permissions/all', [RoleController::class, 'allPermissions']);
 
     });
 });

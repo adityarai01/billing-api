@@ -21,7 +21,7 @@ class HrShiftController extends Controller
     {
         try {
             return $this->successResponse($this->service->searchShifts($this->orgId($request), $request->all()), 'Shifts fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function create(Request $request): JsonResponse
@@ -29,7 +29,7 @@ class HrShiftController extends Controller
         try {
             $shift = $this->service->createShift($this->orgId($request), $request->all(), $this->userId($request));
             return $this->successResponse($shift, 'Shift created.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function update(Request $request): JsonResponse
@@ -37,7 +37,7 @@ class HrShiftController extends Controller
         try {
             $shift = $this->service->updateShift($this->orgId($request), $request->input('id'), $request->all(), $this->userId($request));
             return $this->successResponse($shift, 'Shift updated.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function delete(Request $request): JsonResponse
@@ -45,7 +45,7 @@ class HrShiftController extends Controller
         try {
             $this->service->deleteShift($this->orgId($request), $request->input('id'));
             return $this->successResponse(null, 'Shift deleted.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function assignShift(Request $request): JsonResponse
@@ -60,13 +60,13 @@ class HrShiftController extends Controller
                 $this->userId($request)
             );
             return $this->successResponse($userShift, 'Shift assigned.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 
     public function getUserShifts(Request $request): JsonResponse
     {
         try {
             return $this->successResponse($this->service->getUserShifts($this->orgId($request), $request->all()), 'User shifts fetched.');
-        } catch (\Exception $e) { return $this->errorResponse($e->getMessage()); }
+        } catch (\Throwable $e) { return $this->errorResponse($e->getMessage()); }
     }
 }

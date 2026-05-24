@@ -368,25 +368,29 @@ class ProductController extends Controller
         $createdVariants = [];
 
         foreach ($variants as $index => $variantData) {
+            $stockQty = $variantData['stock_qty']
+                ?? $variantData['available_stock']
+                ?? $variantData['opening_stock']
+                ?? ($data['default_stock_qty'] ?? 0);
+
             $variant = ProductVariant::create([
-                'organization_id'  => $organizationId,
-                'product_id'       => $product->id,
-                'unit_id'          => $variantData['unit_id'] ?? ($data['base_unit_id'] ?? null),
-                'sku'              => $variantData['sku'] ?? ($data['default_sku'] ?? null),
-                'barcode'          => $variantData['barcode'] ?? ($data['default_barcode'] ?? null),
-                'variant_name'     => $variantData['variant_name'] ?? $product->name,
-                'purchase_price'   => $variantData['purchase_price'] ?? ($data['default_purchase_price'] ?? 0),
-                'selling_price'    => $variantData['selling_price'] ?? ($data['default_selling_price'] ?? 0),
-                'wholesale_price'  => $variantData['wholesale_price'] ?? ($data['default_wholesale_price'] ?? 0),
-                'mrp'              => $variantData['mrp'] ?? ($data['default_mrp'] ?? 0),
-                'stock_qty'        => $variantData['stock_qty']
-                    ?? $variantData['available_stock']
-                    ?? $variantData['opening_stock']
-                    ?? ($data['default_stock_qty'] ?? 0),
-                'low_stock_alert'  => $variantData['low_stock_alert'] ?? ($data['default_low_stock_alert'] ?? 0),
-                'image'            => $variantData['image'] ?? null,
-                'status'           => $variantData['status'] ?? 1,
-                'deleted'          => 0,
+                'organization_id'         => $organizationId,
+                'product_id'              => $product->id,
+                'unit_id'                 => $variantData['unit_id'] ?? ($data['base_unit_id'] ?? null),
+                'sku'                     => $variantData['sku'] ?? ($data['default_sku'] ?? null),
+                'barcode'                 => $variantData['barcode'] ?? ($data['default_barcode'] ?? null),
+                'variant_name'            => $variantData['variant_name'] ?? $product->name,
+                'purchase_price'          => $variantData['purchase_price'] ?? ($data['default_purchase_price'] ?? 0),
+                'selling_price'           => $variantData['selling_price'] ?? ($data['default_selling_price'] ?? 0),
+                'wholesale_price'         => $variantData['wholesale_price'] ?? ($data['default_wholesale_price'] ?? 0),
+                'mrp'                     => $variantData['mrp'] ?? ($data['default_mrp'] ?? 0),
+                'stock_qty'               => $stockQty,
+                'available_stock_base_qty'=> $stockQty,
+                'opening_stock_base_qty'  => $stockQty,
+                'low_stock_alert'         => $variantData['low_stock_alert'] ?? ($data['default_low_stock_alert'] ?? 0),
+                'image'                   => $variantData['image'] ?? null,
+                'status'                  => $variantData['status'] ?? 1,
+                'deleted'                 => 0,
             ]);
 
             $this->syncVariantAttributeValues($product, $variant, $variantData['attribute_values'] ?? [], $organizationId);
